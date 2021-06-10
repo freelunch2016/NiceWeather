@@ -1,5 +1,6 @@
 package com.wgp.niceweather.ui.place
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,16 +11,16 @@ import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.wgp.niceweather.R
+import com.wgp.niceweather.ui.weather.WeatherActivity
 
 
 class PlaceFragment :Fragment() {
 
-    private val viewModel by lazy{
+      val viewModel by lazy{
         //创建ViewModel实例
         ViewModelProvider(this).get(PlaceViewModel::class.java)
     }
@@ -37,6 +38,20 @@ class PlaceFragment :Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        //如果已保存过地址就直接跳转天气界面
+        if (viewModel.isPlaceSaved()){
+            val place = viewModel.getSavedPlace()
+            val intent = Intent(context,WeatherActivity::class.java).apply {
+                putExtra("location_lat",place.location.lat)
+                putExtra("location_lng",place.location.lng)
+                putExtra("place_name",place.name)
+            }
+            startActivity(intent)
+            activity?.finish()
+            return
+        }
+
+
         val layoutManager = LinearLayoutManager(activity)
         val recyclerView = activity!!.findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = layoutManager
