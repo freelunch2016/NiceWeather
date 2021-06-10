@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.wgp.niceweather.R
@@ -28,14 +29,26 @@ class PlaceAdapter(private val fragment: PlaceFragment, private val placeList: L
         viewHolder.itemView.setOnClickListener {
             val position = viewHolder.absoluteAdapterPosition
             val place = placeList[position]
-            val intent = Intent(parent.context,WeatherActivity::class.java).apply {
-                putExtra("location_lat",place.location.lat)
-                putExtra("location_lng",place.location.lng)
-                putExtra("place_name",place.name)
+
+            val activity = fragment.activity
+            if (activity is WeatherActivity){
+                activity.findViewById<DrawerLayout>(R.id.drawerLayout).closeDrawers()
+                activity.viewModel.locationLat = place.location.lat
+                activity.viewModel.locationLng = place.location.lng
+                activity.viewModel.placeName = place.name
+                activity.refreshWeather()
+
+            }else{
+                val intent = Intent(parent.context,WeatherActivity::class.java).apply {
+                    putExtra("location_lat",place.location.lat)
+                    putExtra("location_lng",place.location.lng)
+                    putExtra("place_name",place.name)
+                }
+                fragment.viewModel.savePlace(place)
+                fragment.startActivity(intent)
+                fragment.activity?.finish()
             }
-            fragment.viewModel.savePlace(place)
-            fragment.startActivity(intent)
-            fragment.activity?.finish()
+
         }
         return viewHolder
     }

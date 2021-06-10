@@ -1,12 +1,17 @@
 package com.wgp.niceweather.ui.weather
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.wgp.niceweather.R
 import com.wgp.niceweather.logic.model.Weather
 import com.wgp.niceweather.logic.model.getSky
@@ -17,17 +22,18 @@ import java.util.*
  */
 class WeatherActivity : AppCompatActivity() {
 
-    private val viewModel by lazy {
+     val viewModel by lazy {
         ViewModelProvider(this).get(WeatherViewModel::class.java)
     }
 
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather)
         val decorView = window.decorView
         decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
         window.statusBarColor = Color.TRANSPARENT
-
+        swipeRefresh = findViewById(R.id.swipeRefresh)
 
         if (viewModel.locationLat.isEmpty()){
             viewModel.locationLat = intent.getStringExtra("location_lat")?:""
@@ -48,9 +54,42 @@ class WeatherActivity : AppCompatActivity() {
                 Toast.makeText(this,"无法成功获取天气信息",Toast.LENGTH_SHORT).show()
                 it.exceptionOrNull()?.printStackTrace()
             }
+            swipeRefresh.isRefreshing = false
         })
 
-       viewModel.refreshWeather(viewModel.locationLng,viewModel.locationLat)
+        swipeRefresh.setColorSchemeResources(R.color.colorPrimary)
+        refreshWeather()
+        swipeRefresh.setOnRefreshListener {
+            refreshWeather()
+        }
+
+        val navBtn = findViewById<Button>(R.id.navBtn)
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawerLayout)
+        
+        navBtn.setOnClickListener { 
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+        drawerLayout.addDrawerListener( object: DrawerLayout.DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+            }
+
+            override fun onDrawerOpened(drawerView: View) {
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                manager.hideSoftInputFromWindow(drawerView.windowToken,InputMethodManager.HIDE_NOT_ALWAYS)
+
+            }
+
+            override fun onDrawerStateChanged(newState: Int) {
+            }
+        })
+    }
+
+     fun refreshWeather() {
+        viewModel.refreshWeather(viewModel.locationLng, viewModel.locationLat)
+        swipeRefresh.isRefreshing =true
     }
 
     /**

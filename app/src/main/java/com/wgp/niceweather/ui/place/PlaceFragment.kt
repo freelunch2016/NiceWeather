@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.wgp.niceweather.MainActivity
 import com.wgp.niceweather.R
 import com.wgp.niceweather.ui.weather.WeatherActivity
 
@@ -39,7 +40,7 @@ class PlaceFragment :Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         //如果已保存过地址就直接跳转天气界面
-        if (viewModel.isPlaceSaved()){
+        if (activity is MainActivity &&viewModel.isPlaceSaved()){
             val place = viewModel.getSavedPlace()
             val intent = Intent(context,WeatherActivity::class.java).apply {
                 putExtra("location_lat",place.location.lat)
